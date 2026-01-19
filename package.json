@@ -1,5 +1,5 @@
 {
-  "name": "chai-backend",
+  "name": "jwt-based-authentication-authorization-api",
   "version": "1.0.0",
   "description": "a backend at chai aur code channel - youtube",
   "type": "module",
@@ -9,12 +9,12 @@
   },
   "keywords": [
     "javascript",
-    "backend",
-    "chai"
+    "backend"
   ],
-  "author": "Hitesh Choudhary",
+  "author": "Vaibhav Sharma",
   "license": "ISC",
   "devDependencies": {
+    "@types/mongoose-aggregate-paginate-v2": "^1.0.12",
     "nodemon": "^3.0.1",
     "prettier": "^3.0.3"
   },
