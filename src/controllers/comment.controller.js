@@ -3,6 +3,7 @@ import {Comment} from "../models/comment.model.js"
 import {ApiError} from "../utils/ApiError.js"
 import {ApiResponse} from "../utils/ApiResponse.js"
 import {asyncHandler} from "../utils/asyncHandler.js"
+import {Video} from "../models/video.model.js"
 
 const getVideoComments = asyncHandler(async (req, res) => {
     //TODO: get all comments for a video
@@ -70,10 +71,82 @@ const getVideoComments = asyncHandler(async (req, res) => {
 
 const addComment = asyncHandler(async (req, res) => {
     // TODO: add a comment to a video
+    const {videoId} = req.params
+    const {comment} = req.body    
+    
+    if(!videoId) {
+        throw new ApiError(400, "Video id is missing")
+    }
+
+
+    // comment.trim() === "" checks if there is only spaces in the comment, it gets ignored
+    if(!comment || comment.trim() === "") {  
+        throw new ApiError(400, "Comment text is required")
+    }
+
+    const video = await Video.findById(videoId)
+    if(!video) {
+        throw new ApiError(404, "Video not found")
+    }
+
+    const newComment = await Comment.create({
+       content: comment.trim(),
+       video: videoId,
+       owner: req.user._id
+    })
+
+    const populatedComment = await Comment.findById(newComment._id).populate("owner", "username avatar")
+
+    return res.status(200).json(
+        new ApiResponse(
+        200,
+        populatedComment,
+        "Comment added successfully"
+        )
+    )
 })
 
 const updateComment = asyncHandler(async (req, res) => {
     // TODO: update a comment
+    const {commentId} = req.params
+    const {comment} = req.body
+
+    if(!commentId) {
+        throw new ApiError(400, "Comment id is missing")
+    }
+
+    if(!comment?.trim()) {
+        throw new ApiError(400, "Comment text is required")
+    }
+
+    const commentToBeUpdated = await Comment.findById(commentId)
+    if(!commentToBeUpdated) {
+        throw new ApiError(400, "Comment not found")
+    }
+
+    if(!commentToBeUpdated.owner.equals(req.user._id)){
+        throw new ApiError(403, "Not authorized to update this comment")
+    }
+
+    const updatedComment = await Comment.findByIdAndUpdate(
+        commentId,
+        {
+          $set: {
+            content: comment.trim()
+          }  
+        },
+        {
+            new: true
+        }
+    )
+
+    return res.status(200).json(
+        new ApiResponse(
+            200,
+            updatedComment,
+            "Comment updated successfully"
+        )
+    )
 })
 
 const deleteComment = asyncHandler(async (req, res) => {
