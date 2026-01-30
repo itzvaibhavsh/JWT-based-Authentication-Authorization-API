@@ -107,6 +107,42 @@ const getPlaylistById = asyncHandler(async (req, res) => {
 
 const addVideoToPlaylist = asyncHandler(async (req, res) => {
     const {playlistId, videoId} = req.params
+
+    const userId = req.user?._id
+
+    if(!playlistId || !videoId) {
+        throw new ApiError(400, "Playlist id and video id is required")
+    }
+
+    if(!userId) {
+        throw new ApiError(401, "Unauthorized")
+    }
+
+    const updatedPlaylist = await Playlist.findOneAndUpdate(
+        {
+            _id: playlistId,
+            owner: userId
+        },
+        {
+            $addToSet:  { videos: videoId }
+        },
+        {
+            new: true
+        }
+).select("-__v")
+   
+    if(!updatedPlaylist){
+        throw new ApiError(404, "Playlist not found or you are not authorized")
+    }
+
+    return res.status(200).json(
+        new ApiResponse(
+            200,
+            updatedPlaylist,
+            "Video added to playlist successfully"
+        )
+    )
+
 })
 
 const removeVideoFromPlaylist = asyncHandler(async (req, res) => {
