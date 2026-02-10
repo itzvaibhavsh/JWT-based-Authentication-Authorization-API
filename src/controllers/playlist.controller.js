@@ -148,18 +148,129 @@ const addVideoToPlaylist = asyncHandler(async (req, res) => {
 const removeVideoFromPlaylist = asyncHandler(async (req, res) => {
     const {playlistId, videoId} = req.params
     // TODO: remove video from playlist
+    const userId = req.user?._id
+
+    if(!playlistId || !videoId) {
+        throw new ApiError(400, "Playlist id and Video id is required")
+    }
+
+    if(!userId) {
+        throw new ApiError(401, "Unauthorized")
+    }
+
+    const playlist = await Playlist.findByIdAndUpdate(
+        {
+            _id: playlistId,
+            owner: userId
+        },
+        {
+            $pull: {
+                videos: new mongoose.Types.ObjectId(videoId)
+            }
+        },
+        {
+            new: true
+        }
+    )
+
+    if(!playlist) {
+        throw new ApiError(404, "Playlist not authorized or access denied")
+    }
+
+    return res.status(200).json(
+        new ApiResponse(
+            200,
+            playlist,
+            "Video removed from playlist successfully"
+        )
+    )
 
 })
 
 const deletePlaylist = asyncHandler(async (req, res) => {
     const {playlistId} = req.params
     // TODO: delete playlist
+    if(!playlistId) {
+        throw new ApiError(400, "Playlist id is required")
+    }
+    const userId = req.user?._id
+    if(!userId) {
+        throw new ApiError(401, "Unauthorized")
+    }
+
+    // both owner and playlistId need to be checked so that only the authorized user can delete the playlist
+    const playlist = await Playlist.findOneAndDelete({
+        _id: playlistId,
+        owner: userId
+    })
+
+    if(!playlist) {
+        throw new ApiError(404, "Playlist not found or access denied")
+    }
+
+    return res.status(200).json(
+        new ApiResponse(
+            200,
+            {},
+            "Playlist deleted successfully"
+        )
+    )
 })
 
 const updatePlaylist = asyncHandler(async (req, res) => {
     const {playlistId} = req.params
     const {name, description} = req.body
     //TODO: update playlist
+    const userId = req.user?._id
+
+    if(!playlistId) {
+        throw new ApiError(400, "Playlist id is required")
+    }
+
+    if(!userId) {
+        throw new ApiError(401, "Unauthorized")
+    }
+    
+    // build update object dynamically (PATCH dynamically)
+    const updateFields = {}
+
+    if(name?.trim()){
+        updateFields.name = name.trim()
+    }
+
+    if(description?.trim()){
+        updateFields.description = description.trim()
+    }
+
+    if(Object.keys(updateFields).length === 0) {
+        throw new ApiError(400, "At least one field is required to update")
+    }
+
+    const playlist = await Playlist.findOneAndUpdate(
+        {
+            _id: playlistId,
+            owner: userId
+        },
+        {
+            $set: updateFields
+        },
+        {
+            new: true,
+            runValidators: true
+        }
+    )
+
+    if(!playlist) {
+        throw new ApiError(404, "Playlist not found or access denied")
+    }
+
+    return res.status(200).json(
+        new ApiResponse(
+            200,
+            playlist,
+            "Playlist updated successfully"
+        )
+    )
 })
 
 export {
