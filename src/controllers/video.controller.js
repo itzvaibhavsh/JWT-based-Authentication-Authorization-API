@@ -9,7 +9,7 @@ import {uploadOnCloudinary, deleteFromCloudinary} from "../utils/cloudinary.js"
 
 const getAllVideos = asyncHandler(async (req, res) => {
     let { page = 1, limit = 10, query, sortBy = "createdAt", sortType = "desc", userId } = req.query
-    //TODO: get all videos based on query, sort, pagination
+    
     page = parseInt(page);
     limit = parseInt(limit)
 
@@ -93,7 +93,7 @@ const getAllVideos = asyncHandler(async (req, res) => {
 
 const publishAVideo = asyncHandler(async (req, res) => {
     const { title, description} = req.body
-    // TODO: get video, upload to cloudinary, create video
+    
     if(!title || !description) {
         throw new ApiError(400, "Both fields are required")
     }
@@ -148,7 +148,7 @@ const publishAVideo = asyncHandler(async (req, res) => {
 
 const getVideoById = asyncHandler(async (req, res) => {
     const { videoId } = req.params
-    //TODO: get video by id
+    
     if(!videoId) {
         throw new ApiError(400, "Video ID is required")
     }
@@ -196,7 +196,7 @@ const getVideoById = asyncHandler(async (req, res) => {
 
 const updateVideo = asyncHandler(async (req, res) => {
     const { videoId } = req.params
-    //TODO: update video details like title, description, thumbnail
+   
     const {title, description} = req.body
     if(!videoId) {
         throw new ApiError(400, "Video id is required")
@@ -244,7 +244,7 @@ const updateVideo = asyncHandler(async (req, res) => {
 
 const deleteVideo = asyncHandler(async (req, res) => {
     const { videoId } = req.params
-    //TODO: delete video
+    
     if(!videoId) {
         throw new ApiError(400, "Video id is required")
     }
