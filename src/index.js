@@ -18,6 +18,9 @@ connectDB()
     console.log("MONGO db connection failed !!! ", err);
 })
 
+app.get("/", (req,res) =>{
+    res.status(200).send("JWT Authentication API is running")
+})
 
 
 
